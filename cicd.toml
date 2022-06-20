@@ -5,7 +5,7 @@ listeningPorts = ""
 testUnit = "npm run test"
 build = "node -v;npm -v;npm run build"
 #build = "go build -ldflags \"-X main.BuildGitVersion='#git_version#' -X 'main.BUILD_TIME=`#datetime#`' \" -o #service_name#"
-command="npm install --unsafe-perm=true --allow-root "
+command="npm install --unsafe-perm=true --allow-root --registry=https://registry.npm.taobao.org "
 configTmpFileName=".env.production.tmp"
 configFileName=".env.production"
 
