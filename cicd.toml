@@ -1,0 +1,13 @@
+#当前项目的CICD配置信息
+[system]
+startup = "npm run serve #env#"
+listeningPorts = ""
+testUnit = "npm run test"
+build = "node -v;npm -v;npm run build"
+#build = "go build -ldflags \"-X main.BuildGitVersion='#git_version#' -X 'main.BUILD_TIME=`#datetime#`' \" -o #service_name#"
+command="npm install --unsafe-perm=true --allow-root "
+configTmpFileName=".env.production.tmp"
+configFileName=".env.production"
+
+[depend]
+noce="1.14.1"
