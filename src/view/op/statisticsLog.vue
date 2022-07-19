@@ -8,11 +8,17 @@
         <el-form-item label="用户ID">
           <el-input v-model="searchInfo.uid" placeholder="搜索条件" />
         </el-form-item>
+        <el-form-item label="设备-序列号">
+          <el-input v-model="searchInfo.sn" placeholder="搜索条件" />
+        </el-form-item>
         <el-form-item label="动作标识">
           <el-input v-model="searchInfo.action" placeholder="搜索条件" />
         </el-form-item>
-        <el-form-item label="http公共请求头信息">
-          <el-input v-model="searchInfo.headerCommon" placeholder="搜索条件" />
+        <el-form-item label="应用名">
+          <el-input v-model="searchInfo.appName" placeholder="搜索条件" />
+        </el-form-item>
+        <el-form-item label="自定义消息体">
+          <el-input v-model="searchInfo.msg" placeholder="搜索条件" />
         </el-form-item>
         <el-form-item>
           <el-button size="small" type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -26,7 +32,7 @@
             <el-popover v-model:visible="deleteVisible" placement="top" width="160">
             <p>确定要删除吗？</p>
             <div style="text-align: right; margin-top: 8px;">
-                <el-button size="small" type="text" @click="deleteVisible = false">取消</el-button>
+                <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>
                 <el-button size="small" type="primary" @click="onDelete">确定</el-button>
             </div>
             <template #reference>
@@ -43,23 +49,27 @@
         @selection-change="handleSelectionChange"
         >
         <el-table-column type="selection" width="55" />
-
+        <el-table-column align="left" label="日期" width="180">
+            <template #default="scope">{{ formatUnixDate(scope.row.CreatedAt) }}</template>
+        </el-table-column>
         <el-table-column align="left" label="项目ID" prop="projectId" width="120" />
         <el-table-column align="left" label="用户ID" prop="uid" width="120" />
-        <el-table-column align="left" label="分类，暂未使用" prop="category" width="120" />
+        <el-table-column align="left" label="设备-序列号" prop="sn" width="120" />
         <el-table-column align="left" label="动作标识" prop="action" width="120" />
-        <el-table-column align="left" label="http请求头客户端基础信息" prop="headerBase" width="120" />
-        <el-table-column align="left" label="http公共请求头信息" prop="headerCommon" width="120" :formatter="substrContent" />
+        <el-table-column align="left" label="应用名" prop="appName" width="120" />
+        <el-table-column align="left" label="应用版本号" prop="appVersion" width="120" />
         <el-table-column align="left" label="自定义消息体" prop="msg" width="120" />
-
-          <el-table-column align="left" label="日期" width="180">
-            <template #default="scope">{{ formatUnixtDate(scope.row.CreatedAt) }}</template>
-          </el-table-column>
-
+        <el-table-column align="left" label="包名" prop="packageName" width="120" />
+        <el-table-column align="left" label="记录时间" prop="recordTime" width="120">
+          <template #default="scope">{{ formatUnixDate(scope.row.recordTime) }}</template>
+        </el-table-column>
+        <el-table-column align="left" label="设备-版本号" prop="systemVersion" width="120" />
+        <el-table-column align="left" label="header-comm" prop="headerCommon" width="120" :formatter="substrContent" />
+        <el-table-column align="left" label="header-base" prop="headerBase" width="120"  :formatter="substrContent" />
         <el-table-column align="left" label="按钮组">
             <template #default="scope">
-            <el-button type="text" icon="edit" size="small" class="table-button" @click="updateStatisticsLogFunc(scope.row)">变更</el-button>
-            <el-button type="text" icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
+            <el-button type="primary" link icon="edit" size="small" class="table-button" @click="updateStatisticsLogFunc(scope.row)">变更</el-button>
+            <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
             </template>
         </el-table-column>
         </el-table>
@@ -76,27 +86,42 @@
         </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" label-width="80px">
-        <el-form-item label="项目ID:">
-          <el-input v-model.number="formData.projectId" clearable placeholder="请输入" />
+      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
+        <el-form-item label="项目ID:"  prop="projectId" >
+          <el-input v-model.number="formData.projectId" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="用户ID:">
-          <el-input v-model.number="formData.uid" clearable placeholder="请输入" />
+        <el-form-item label="用户ID:"  prop="uid" >
+          <el-input v-model.number="formData.uid" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="分类，暂未使用:">
-          <el-input v-model.number="formData.category" clearable placeholder="请输入" />
+        <el-form-item label="设备-序列号:"  prop="sn" >
+          <el-input v-model="formData.sn" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="动作标识:">
-          <el-input v-model="formData.action" clearable placeholder="请输入" />
+        <el-form-item label="动作标识:"  prop="action" >
+          <el-input v-model="formData.action" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="http请求头客户端基础信息:">
-          <el-input v-model="formData.headerBase" clearable placeholder="请输入" />
+        <el-form-item label="应用名:"  prop="appName" >
+          <el-input v-model="formData.appName" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="http公共请求头信息:">
-          <el-input v-model="formData.headerCommon" clearable placeholder="请输入" />
+        <el-form-item label="应用版本号:"  prop="appVersion" >
+          <el-input v-model="formData.appVersion" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="自定义消息体:">
-          <el-input v-model="formData.msg" clearable placeholder="请输入" />
+        <el-form-item label="自定义消息体:"  prop="msg" >
+          <el-input v-model="formData.msg" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="包名:"  prop="packageName" >
+          <el-input v-model="formData.packageName" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="记录时间:"  prop="recordTime" >
+          <el-input v-model.number="formData.recordTime" :clearable="true" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="设备-版本号:"  prop="systemVersion" >
+          <el-input v-model="formData.systemVersion" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="http公共请求头信息:"  prop="headerCommon" >
+          <el-input v-model="formData.headerCommon" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="http请求头客户端基础信息:"  prop="headerBase" >
+          <el-input v-model="formData.headerBase" :clearable="true"  placeholder="请输入" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -126,20 +151,60 @@ import {
 } from '@/api/statisticsLog'
 
 // 全量引入格式化工具 请按需保留
-import { getDictFunc, formatDate, formatBoolean, filterDict ,formatUnixtDate } from '@/utils/format'
+import { getDictFunc, formatDate, formatBoolean, filterDict , formatUnixDate } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
         projectId: 0,
         uid: 0,
-        category: 0,
+        sn: '',
         action: '',
-        headerBase: '',
-        headerCommon: '',
+        appName: '',
+        appVersion: '',
         msg: '',
+        packageName: '',
+        recordTime: 0,
+        systemVersion: '',
+        headerCommon: '',
+        headerBase: '',
         })
+
+// 验证规则
+const rule = reactive({
+               projectId : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+               uid : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+               sn : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+               action : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+})
+
+const elFormRef = ref()
+
+const substrContent = (val) => {
+  var v = val.headerCommon
+  if( v.length > 60){
+    return v.substr(0,60) + "..."
+  }else{
+    return v
+  }
+}
 
 // =========== 表格控制部分 ===========
 const page = ref(1)
@@ -147,14 +212,7 @@ const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
 const searchInfo = ref({})
-const substrContent = (val) => {
-  var v = val.headerCommon
-  if( v.length > 40){
-    return v.substr(0,40)
-  }else{
-    return v
-  }
-}
+
 // 重置
 const onReset = () => {
   searchInfo.value = {}
@@ -296,35 +354,43 @@ const closeDialog = () => {
     formData.value = {
         projectId: 0,
         uid: 0,
-        category: 0,
+        sn: '',
         action: '',
-        headerBase: '',
-        headerCommon: '',
+        appName: '',
+        appVersion: '',
         msg: '',
+        packageName: '',
+        recordTime: 0,
+        systemVersion: '',
+        headerCommon: '',
+        headerBase: '',
         }
 }
 // 弹窗确定
 const enterDialog = async () => {
-      let res
-      switch (type.value) {
-        case 'create':
-          res = await createStatisticsLog(formData.value)
-          break
-        case 'update':
-          res = await updateStatisticsLog(formData.value)
-          break
-        default:
-          res = await createStatisticsLog(formData.value)
-          break
-      }
-      if (res.code === 0) {
-        ElMessage({
-          type: 'success',
-          message: '创建/更改成功'
-        })
-        closeDialog()
-        getTableData()
-      }
+     elFormRef.value?.validate( async (valid) => {
+             if (!valid) return
+              let res
+              switch (type.value) {
+                case 'create':
+                  res = await createStatisticsLog(formData.value)
+                  break
+                case 'update':
+                  res = await updateStatisticsLog(formData.value)
+                  break
+                default:
+                  res = await createStatisticsLog(formData.value)
+                  break
+              }
+              if (res.code === 0) {
+                ElMessage({
+                  type: 'success',
+                  message: '创建/更改成功'
+                })
+                closeDialog()
+                getTableData()
+              }
+      })
 }
 </script>
 

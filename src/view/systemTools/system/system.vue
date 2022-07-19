@@ -120,12 +120,6 @@
             <el-button @click="email">测试邮件</el-button>
           </el-form-item>
         </el-collapse-item>
-        <el-collapse-item title="casbin配置" name="6">
-          <el-form-item label="模型地址">
-            <el-input v-model="config.casbin['model-path']" />
-          </el-form-item>
-        </el-collapse-item>
-
         <el-collapse-item title="验证码配置" name="7">
           <el-form-item label="字符长度">
             <el-input v-model.number="config.captcha['key-long']" />
@@ -330,7 +324,7 @@
 
         <el-collapse-item title="Timer(定时任务)" name="13">
           <el-form-item label="Start（是否启用）">
-            <el-select v-model="config.timer['w-table']" />
+            <el-checkbox v-model="config.timer['start']" />
           </el-form-item>
           <el-form-item label="Spec(CRON表达式)">
             <el-input v-model="config.timer.spec" />
@@ -370,7 +364,6 @@ const config = ref({
     'iplimit-time': 0
   },
   jwt: {},
-  casbin: {},
   mysql: {},
   pgsql: {},
   excel: {},

@@ -2,7 +2,7 @@
   <el-container class="layout-cont">
     <el-container :class="[isSider?'openside':'hideside',isMobile ? 'mobile': '']">
       <el-row :class="[isShadowBg?'shadowBg':'']" @click="changeShadow()" />
-      <el-aside class="main-cont main-left">
+      <el-aside class="main-cont main-left gva-aside">
         <div class="tilte" :style="{background: backgroundColor}">
           <img alt class="logoimg" :src="$GIN_VUE_ADMIN.appLogo">
           <div v-if="isSider" class="tit-text" :style="{color:textColor}">{{ $GIN_VUE_ADMIN.appName }}</div>
@@ -31,7 +31,7 @@
                         <el-breadcrumb-item
                           v-for="item in matched.slice(1,matched.length)"
                           :key="item.path"
-                        >{{ route.params.title || item.meta.title }}</el-breadcrumb-item>
+                        >{{ fmtTitle(item.meta.title,route) }}</el-breadcrumb-item>
                       </el-breadcrumb>
                     </el-col>
                     <el-col :xs="12" :lg="9" :md="9" :sm="14" :xl="9">
@@ -78,7 +78,13 @@
             <HistoryComponent ref="layoutHistoryComponent" />
           </div>
         </transition>
-        <router-view v-if="reloadFlag" v-slot="{ Component }" v-loading="loadingFlag" element-loading-text="正在加载中" class="admin-box">
+        <router-view
+          v-if="reloadFlag"
+          v-slot="{ Component }"
+          v-loading="loadingFlag"
+          element-loading-text="正在加载中"
+          class="admin-box"
+        >
           <div>
             <transition mode="out-in" name="el-fade-in-linear">
               <keep-alive :include="routerStore.keepAliveRouters">
@@ -114,6 +120,7 @@ import { computed, ref, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/pinia/modules/user'
 import { useRouterStore } from '@/pinia/modules/router'
+import { fmtTitle } from '@/utils/fmtRouterTitle'
 
 const router = useRouter()
 const route = useRoute()
@@ -122,10 +129,6 @@ const routerStore = useRouterStore()
 const isCollapse = ref(false)
 const isSider = ref(true)
 const isMobile = ref(false)
-
-const cc = (e) => {
-  console.log(e)
-}
 
 const initPage = () => {
   const screenWidth = document.body.clientWidth
@@ -202,7 +205,7 @@ const changeUserAuth = async(id) => {
     emitter.emit('closeAllPage')
     setTimeout(() => {
       window.location.reload()
-    }, 1)
+    }, 50)
   }
 }
 

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <warning-bar href="https://www.bilibili.com/video/BV1kv4y1g7nT?p=3" title="此功能为开发环境使用，不建议发布到生产，具体使用效果请看视频https://www.bilibili.com/video/BV1kv4y1g7nT?p=3" />
     <!-- 从数据库直接获取字段 -->
     <div class="gva-search-box">
       <el-collapse v-model="activeNames" style="margin-bottom:12px">
@@ -47,7 +48,7 @@
     </div>
     <div class="gva-search-box">
       <!-- 初始版本自动化代码工具 -->
-      <el-form ref="autoCodeForm" :rules="rules" :model="form" label-width="120px" :inline="true">
+      <el-form ref="autoCodeForm" :rules="rules" :model="form" size="small" label-width="120px" :inline="true">
         <el-form-item label="Struct名称" prop="structName">
           <el-input v-model="form.structName" placeholder="首字母自动转换大写" />
         </el-form-item>
@@ -94,44 +95,50 @@
         <el-button size="small" type="primary" @click="editAndAddField()">新增Field</el-button>
       </div>
       <el-table :data="form.fields">
-        <el-table-column align="left" type="index" label="序列" width="100" />
+        <el-table-column align="left" type="index" label="序列" width="60" />
         <el-table-column align="left" prop="fieldName" label="Field名" />
         <el-table-column align="left" prop="fieldDesc" label="中文名" />
-        <el-table-column align="left" prop="fieldJson" label="FieldJson" />
+        <el-table-column align="left" prop="require" label="是否必填">
+          <template #default="{row}">{{ row.require?"是":"否" }}</template>
+        </el-table-column>
+        <el-table-column align="left" prop="fieldJson" min-width="120px" label="FieldJson" />
         <el-table-column align="left" prop="fieldType" label="Field数据类型" width="130" />
         <el-table-column align="left" prop="dataTypeLong" label="数据库字段长度" width="130" />
         <el-table-column align="left" prop="columnName" label="数据库字段" width="130" />
         <el-table-column align="left" prop="comment" label="数据库字段描述" width="130" />
         <el-table-column align="left" prop="fieldSearchType" label="搜索条件" width="130" />
         <el-table-column align="left" prop="dictType" label="字典" width="130" />
-        <el-table-column align="left" label="操作" width="300">
+        <el-table-column align="left" label="操作" width="300" fixed="right">
           <template #default="scope">
             <el-button
               size="small"
-              type="text"
+              type="primary"
+              link
               icon="edit"
               @click="editAndAddField(scope.row)"
             >编辑</el-button>
             <el-button
               size="small"
-              type="text"
+              type="primary"
+              link
               :disabled="scope.$index === 0"
               @click="moveUpField(scope.$index)"
             >上移</el-button>
             <el-button
               size="small"
-              type="text"
+              type="primary"
+              link
               :disabled="(scope.$index + 1) === form.fields.length"
               @click="moveDownField(scope.$index)"
             >下移</el-button>
-            <el-popover v-model:visible="scope.row.visible" placement="top">
+            <el-popover v-model="scope.row.visible" placement="top">
               <p>确定删除吗？</p>
               <div style="text-align: right; margin-top: 8px;">
-                <el-button size="small" type="text" @click="scope.row.visible = false">取消</el-button>
+                <el-button size="small" type="primary" link @click="scope.row.visible = false">取消</el-button>
                 <el-button type="primary" size="small" @click="deleteField(scope.$index)">确定</el-button>
               </div>
               <template #reference>
-                <el-button size="small" type="text" icon="delete" @click="scope.row.visible = true">删除</el-button>
+                <el-button size="small" type="primary" link icon="delete" @click="scope.row.visible = true">删除</el-button>
               </template>
             </el-popover>
           </template>
@@ -144,7 +151,7 @@
       </div>
     </div>
     <!-- 组件弹窗 -->
-    <el-dialog v-model="dialogFlag" title="组件内容">
+    <el-dialog v-model="dialogFlag" width="70%" title="组件内容">
       <FieldDialog v-if="dialogFlag" ref="fieldDialogNode" :dialog-middle="dialogMiddle" />
       <template #footer>
         <div class="dialog-footer">
@@ -155,7 +162,7 @@
     </el-dialog>
 
     <el-dialog v-model="previewFlag">
-      <template #title>
+      <template #header>
         <div class="previewCodeTool">
           <p>操作栏：</p>
           <el-button size="small" type="primary" @click="selectText">全选</el-button>
@@ -183,6 +190,9 @@ const fieldTemplate = {
   columnName: '',
   dataTypeLong: '',
   comment: '',
+  require: false,
+  errorText: '',
+  clearable: true,
   fieldSearchType: '',
   dictType: ''
 }
@@ -195,6 +205,7 @@ import { getDict } from '@/utils/dictionary'
 import { ref, getCurrentInstance, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import WarningBar from '@/components/warningBar/warningBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -215,8 +226,8 @@ const form = ref({
   package: '',
   abbreviation: '',
   description: '',
-  autoCreateApiToSql: false,
-  autoMoveFile: false,
+  autoCreateApiToSql: true,
+  autoMoveFile: true,
   fields: []
 })
 const rules = ref({
@@ -415,6 +426,7 @@ const getColumnFunc = async() => {
     form.value.abbreviation = tbHump
     form.value.description = tbHump + '表'
     form.value.autoCreateApiToSql = true
+    form.value.autoMoveFile = true
     form.value.fields = []
     res.data.columns &&
           res.data.columns.forEach(item => {
@@ -429,6 +441,9 @@ const getColumnFunc = async() => {
                 dataTypeLong: item.dataTypeLong && item.dataTypeLong.split(',')[0],
                 columnName: item.columnName,
                 comment: item.columnComment,
+                require: false,
+                errorText: '',
+                clearable: true,
                 fieldSearchType: '',
                 dictType: ''
               })
@@ -476,7 +491,9 @@ const init = () => {
 init()
 
 watch(() => route.params.id, (id) => {
-  init()
+  if (route.name === 'autoCodeEdit') {
+    init()
+  }
 })
 
 </script>
@@ -509,4 +526,5 @@ export default {
   color: #666;
   cursor: pointer;
 }
+
 </style>

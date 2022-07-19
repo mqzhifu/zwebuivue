@@ -17,7 +17,7 @@ export const formatDate = (time) => {
   }
 }
 
-export const formatUnixtDate = (time) => {
+export const formatUnixDate = (time) => {
   if (time !== null && time !== '' && time > 0) {
     time = time + "000"
     time = parseInt(time);
@@ -27,7 +27,6 @@ export const formatUnixtDate = (time) => {
     return '--'
   }
 }
-
 
 export const filterDict = (value, options) => {
   const rowLabel = options && options.filter(item => item.value === value)
