@@ -66,18 +66,27 @@
             </div>
           </el-form-item>
           <el-form-item>
+<!--            <el-button-->
+<!--              type="primary"-->
+<!--              style="width: 46%"-->
+<!--              size="large"-->
+<!--              @click="checkInit"-->
+<!--            >前往初始化</el-button>-->
+<!--            <el-button-->
+<!--              type="primary"-->
+<!--              size="large"-->
+<!--              style="width: 46%; margin-left: 8%"-->
+<!--              @click="submitForm"-->
+<!--            >登 录</el-button>-->
+
+
             <el-button
-              type="primary"
-              style="width: 46%"
-              size="large"
-              @click="checkInit"
-            >前往初始化</el-button>
-            <el-button
-              type="primary"
-              size="large"
-              style="width: 46%; margin-left: 8%"
-              @click="submitForm"
+                type="primary"
+                size="large"
+                style="width: 30%; "
+                @click="submitForm"
             >登 录</el-button>
+
           </el-form-item>
         </el-form>
       </div>
